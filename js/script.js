@@ -1,28 +1,72 @@
-let nome, idInterval;
+let idInterval;
 const postar = "https://mock-api.driven.com.br/api/v6/uol/participants";
 const pegar = "https://mock-api.driven.com.br/api/v6/uol/messages";
+const chat = document.querySelector("main");
+const input = document.querySelector(".input-message");
 
-const mensagens = document.querySelector("main");
+let user ={
+    name:""
+};
 
-/*function erro(mensagem){
+let envio ={
+    from: user.name,
+    to: 'Todos',
+    text: 'texto prenchido',
+    type: 'message'};
+
+function erro(mensagem){
     alert(mensagem);
     nome = null;
 }
 
-do{
-    nome = prompt("Informe seu nome");
+//função para fazer Login
+function login(){
+    do{
+        user.name = prompt("Informe seu nome");
 
-    if(!isNaN(nome)){
-        erro("Nome inválido, informe um nome");
-        continue;
-    }
+        if(!isNaN(user.name)){
+            erro("Nome inválido, informe um nome");
+            continue;
+        }
 
-} while(!nome);
+    } while(!user.name);
 
-*/
+    enviaUsuarioServidor();
 
+}
+
+function enviaUsuarioServidor(){
+    axios.post('https://mock-api.driven.com.br/api/v6/uol/participants',user).then(usuarioValido).catch(usuarioInvalido);
+}
+
+function usuarioValido(){
+    envio.from = user.name;
+    console.log("tudo certo");
+    consultarServidor();
+}
+
+function usuarioInvalido(){
+    console.log("Não deu certo");
+    login();
+}
+
+// Enviar dados para o servidor
+function enviarServidor(){
+    axios.post('https://mock-api.driven.com.br/api/v6/uol/messages',envio)
+    .then(envioOk).catch(erroEnvio);
+}
+
+function envioOk(resultado){
+    
+}
+
+function erroEnvio(){
+    console.log("Erro ao enviar");
+}
+
+// consultar o servidor e carregar as mensagens
 function consultarServidor(){
-    axios.get('https://mock-api.driven.com.br/api/v6/uol/messages').then(buscarMensagens);
+    axios.get('https://mock-api.driven.com.br/api/v6/uol/messages').then(buscarMensagens).catch(erroMensagens);
 }
 
 function buscarMensagens(dados){
@@ -31,29 +75,60 @@ function buscarMensagens(dados){
 
         if(element.type === "status"){
 
-            mensagens.innerHTML += `<div class="status">           
+            chat.innerHTML += `<div class="status">           
             <time datetime="09:34:23">(${element.time})</time>
             <strong>${element.from}</strong> ${element.text}         
             </div>`
 
         } else if(element.type === "message"){
-            mensagens.innerHTML += `<div>           
+            chat.innerHTML += `<div>           
             <time datetime="09:34:23">(${element.time})</time>
             <strong>${element.from}</strong> para <strong>${element.to}:</strong> ${element.text}         
             </div>` 
 
         } else if(element.type === "private_message"){
-            mensagens.innerHTML += `<div class="private">           
+            chat.innerHTML += `<div class="private">           
             <time datetime="09:34:23">(${element.time})</time>
             <strong>${element.from}</strong> reservadamente para <strong>${element.to}:</strong> ${element.text}         
             </div>`
         }
         
-        mensagens.querySelector("div:last-child").scrollIntoView();
+        chat.querySelector("div:last-child").scrollIntoView();
     });
 
 }
 
-consultarServidor();
+function erroMensagens(){
+    console.log("erro ao buscar mensagens");
+}
 
-idInterval = setInterval(consultarServidor,30000);
+function enviar(){
+    envio.text = input.value;
+    console.log(envio);
+    enviarServidor();
+    consultarServidor();
+}
+
+function clicouInput(){
+    input.value = '';
+}
+
+function statusUsuario(){
+    axios.post('https://mock-api.driven.com.br/api/v6/uol/status',user).then(usuarioOn).catch(usuarioOff);
+}
+
+function usuarioOn(){
+    console.log(user);
+}
+
+function usuarioOff(){
+    console.log(user);
+}
+
+login();
+
+idInterval = setInterval(statusUsuario,5000);
+
+
+
+
